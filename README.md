@@ -46,7 +46,7 @@ responsive-admin-dashboard/
 │   └── js/
 │       └── main.js     # Dashboard logic, Chart.js setup, search, and state management
 └── README.md           # Project documentation
-🚀 Getting Started Locally
+## 🚀 Getting Started Locally
 Clone the repository:
 
 Bash
@@ -61,7 +61,7 @@ Open index.html directly in your browser.
 
 Or use VS Code extension like Live Server (Go Live) to launch local development server.
 
-📝 Usage Guide
+## 📝 Usage Guide
 Timeframe Switching: Click on 7 Days, 30 Days, or 1 Year buttons in the Performance Metrics section to dynamically update revenue charts.
 
 Search: Use the header search bar to filter transactions instantly by typing names or statuses (e.g., Acme, Pending, Direct Traffic).
@@ -70,5 +70,5 @@ Add Transaction: Click + Add Transaction button in Admin mode to append new data
 
 Export Reports: Click Export CSV in the header or Download PDF Report inside the Analytics tab.
 
-📄 License
+## 📄 License
 This project is created for educational and presentation purposes.
