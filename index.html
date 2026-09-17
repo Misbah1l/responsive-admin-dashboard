@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-full text-slate-100 antialiased bg-slate-900 font-sans selection:bg-indigo-500 selection:text-white">
+
+  <div class="min-h-screen flex flex-col md:flex-row">
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 hidden md:hidden transition-opacity duration-300"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-950 border-r border-slate-800 transform -translate-x-full md:translate-x-0 md:static md:inset-auto transition-transform duration-300 ease-in-out flex flex-col justify-between">
+      <div>
+        <div class="h-16 flex items-center justify-between px-6 border-b border-slate-800">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/30">
+              A
+            </div>
+            <span class="font-bold text-lg tracking-wide text-white">ApexAdmin</span>
+          </div>
+          <button id="close-sidebar-btn" class="md:hidden text-slate-400 hover:text-white focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <nav class="p-4 space-y-1.5">
+          <button id="nav-overview" onclick="switchTab('overview')" class="nav-item w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 bg-indigo-600 text-white shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span>Overview</span>
+          </button>
+
+          <button id="nav-analytics" onclick="switchTab('analytics')" class="nav-item w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 text-slate-400 hover:bg-slate-900 hover:text-slate-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span>Analytics</span>
+          </button>
+
+          <button id="nav-transactions" onclick="switchTab('transactions')" class="nav-item w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 text-slate-400 hover:bg-slate-900 hover:text-slate-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <span>Transactions</span>
+          </button>
+
+          <button id="nav-settings" onclick="switchTab('settings')" class="nav-item w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 text-slate-400 hover:bg-slate-900 hover:text-slate-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span>Settings</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="p-4 border-t border-slate-800">
+        <div class="flex items-center justify-between bg-slate-900/80 p-3 rounded-xl border border-slate-800/80">
+          <div class="flex items-center space-x-3">
+            <div id="user-avatar" class="w-9 h-9 rounded-full bg-indigo-600 flex items-center font-bold justify-center text-white text-sm shadow-md">JS</div>
+            <div class="truncate">
+              <p id="user-name-display" class="text-sm font-semibold text-white truncate">Jane Smith</p>
+              <p id="user-role-display" class="text-xs text-slate-400 flex items-center">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span> Admin Online
+              </p>
+            </div>
+          </div>
+          <button id="auth-action-btn" onclick="handleAuthAction()" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors" title="Logout">
+            <svg class="w-5 h-5 text-rose-400 hover:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-900">
+
+      <header class="h-16 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30">
+        <div class="flex items-center space-x-4">
+          <button id="open-sidebar-btn" class="md:hidden p-2 text-slate-400 hover:text-white focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <h1 id="page-title" class="text-xl font-bold text-white tracking-tight">Overview Dashboard</h1>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <div class="relative hidden sm:block">
+            <input type="text" onkeyup="handleSearch(this.value)" placeholder="Search anything..." class="bg-slate-900 text-slate-200 text-sm rounded-xl pl-9 pr-4 py-2 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 w-48 lg:w-64 transition-all">
+            <svg class="w-4 h-4 text-slate-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+
+          <button id="export-csv-btn" onclick="exportReportCSV()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-200 hover:scale-[1.03] shadow-sm shadow-indigo-500/30 flex items-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span class="hidden sm:inline">Export CSV</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="flex-1 p-4 md:p-8 space-y-6 overflow-y-auto">
+
+        <div id="guest-guard-banner" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between text-amber-200 text-sm">
+          <div class="flex items-center space-x-3">
+            <svg class="w-5 h-5 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span>You are viewing in <strong>Guest Mode</strong>. Actions like adding transactions or changing settings are disabled.</span>
+          </div>
+          <button onclick="handleAuthAction()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs transition-all">
+            Sign In as Admin
+          </button>
+        </div>
+
+        <!-- TAB 1: OVERVIEW -->
+        <div id="tab-overview" class="tab-content space-y-6">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+            <span class="text-sm font-semibold text-slate-300">Performance Metrics</span>
+            <div class="flex space-x-2">
+              <button onclick="updateTimeframe('7d', this)" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-sm transition-all duration-150 hover:scale-105">7 Days</button>
+              <button onclick="updateTimeframe('30d', this)" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white border border-slate-800 transition-all duration-150 hover:scale-105">30 Days</button>
+              <button onclick="updateTimeframe('1y', this)" class="tf-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white border border-slate-800 transition-all duration-150 hover:scale-105">1 Year</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl hover:border-slate-700 transition-all">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Revenue</p>
+              <h3 id="kpi-revenue" class="text-2xl font-bold text-white mt-2">$34,120.00</h3>
+              <p class="text-xs text-emerald-400 mt-2 flex items-center font-medium">↑ 12.4% vs last period</p>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl hover:border-slate-700 transition-all">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Users</p>
+              <h3 id="kpi-users" class="text-2xl font-bold text-white mt-2">6,410</h3>
+              <p class="text-xs text-emerald-400 mt-2 flex items-center font-medium">↑ 8.1% growth</p>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl hover:border-slate-700 transition-all">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Conversion Rate</p>
+              <h3 class="text-2xl font-bold text-white mt-2">3.42%</h3>
+              <p class="text-xs text-rose-400 mt-2 flex items-center font-medium">↓ 0.3% shift</p>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl hover:border-slate-700 transition-all">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Avg Order Value</p>
+              <h3 class="text-2xl font-bold text-white mt-2">$114.50</h3>
+              <p class="text-xs text-emerald-400 mt-2 flex items-center font-medium">↑ 4.2% increase</p>
+            </div>
+          </div>
+
+          <!-- Line Graph -->
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-4">Revenue Trends (Line Graph)</h2>
+            <div class="h-72 w-full relative">
+              <canvas id="overviewChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Bar Chart Section -->
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-4">Acquisition & Traffic Distribution (Bar Chart)</h2>
+            <div class="h-72 w-full relative">
+              <canvas id="overviewBarChart"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-bold text-white">Recent Transactions</h2>
+              <button id="add-tx-btn" onclick="openAddTransactionModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all">
+                + Add Transaction
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm text-slate-200">
+                <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
+                  <tr>
+                    <th class="py-3.5 px-6">Customer</th>
+                    <th class="py-3.5 px-6">Channel</th>
+                    <th class="py-3.5 px-6">Amount</th>
+                    <th class="py-3.5 px-6">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="transactions-tbody" class="divide-y divide-slate-800/80"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: ANALYTICS -->
+        <div id="tab-analytics" class="tab-content hidden space-y-6">
+          <div class="flex justify-between items-center">
+            <h2 class="text-lg font-bold text-white">Analytics Summary</h2>
+            <button id="download-pdf-btn" onclick="downloadAnalyticsPDF()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold px-4 py-2 rounded-xl border border-slate-700 transition-all">
+              Download PDF Report
+            </button>
+          </div>
+
+          <div id="pdf-report-container" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 space-y-6">
+            <h3 class="text-md font-bold text-indigo-400">Deep Performance Breakdown</h3>
+            <div class="h-80 w-full relative">
+              <canvas id="analyticsBarChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: TRANSACTIONS -->
+        <div id="tab-transactions" class="tab-content hidden space-y-6">
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-4">Full Transaction Log</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm text-slate-200">
+                <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
+                  <tr>
+                    <th class="py-3.5 px-6">Tx ID</th>
+                    <th class="py-3.5 px-6">Customer</th>
+                    <th class="py-3.5 px-6">Amount</th>
+                    <th class="py-3.5 px-6">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="all-transactions-tbody" class="divide-y divide-slate-800/80"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: SETTINGS -->
+        <div id="tab-settings" class="tab-content hidden space-y-6">
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6 max-w-2xl">
+            <h2 class="text-lg font-bold text-white mb-6">Profile Settings</h2>
+            <form onsubmit="saveSettings(event)" class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Display Name</label>
+                <input id="setting-name" type="text" value="Jane Smith" class="setting-input w-full bg-slate-900 text-white px-4 py-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Email Notifications</label>
+                <input id="setting-email" type="email" value="jane.smith@apex.com" class="setting-input w-full bg-slate-900 text-white px-4 py-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 text-sm">
+              </div>
+              <button id="save-settings-btn" type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-all shadow-md shadow-indigo-500/20">
+                Save Changes
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD TRANSACTION WITH STATUS FIELD -->
+  <div id="add-tx-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-lg font-bold text-white">Add New Transaction</h3>
+        <button onclick="closeAddTransactionModal()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <form onsubmit="submitNewTransaction(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Customer Name</label>
+          <input id="tx-cust" type="text" required class="w-full bg-slate-950 text-white px-3 py-2 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Channel</label>
+          <input id="tx-chan" type="text" required class="w-full bg-slate-950 text-white px-3 py-2 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Amount ($)</label>
+          <input id="tx-amt" type="number" step="0.01" required class="w-full bg-slate-950 text-white px-3 py-2 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Status</label>
+          <select id="tx-status" required class="w-full bg-slate-950 text-white px-3 py-2 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 text-sm">
+            <option value="Completed">Completed</option>
+            <option value="Pending">Pending</option>
+            <option value="Failed">Failed</option>
+          </select>
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeAddTransactionModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md">Add Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: LOGIN / SIGN IN -->
+  <div id="login-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4">
+      <div class="text-center space-y-1">
+        <h3 class="text-xl font-bold text-white">Sign In as Admin</h3>
+        <p class="text-xs text-slate-400">Enter your credentials to access full dashboard options.</p>
+      </div>
+      <form onsubmit="processLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Name</label>
+          <input id="login-user" type="text" required placeholder="Jane Smith" class="w-full bg-slate-950 text-white px-3 py-2 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Email</label>
+          <input id="login-email" type="email" required placeholder="jane.smith@apex.com" class="w-full bg-slate-950 text-white px-3 py-2 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Password</label>
+          <input id="login-password" type="password" required placeholder="••••••••" class="w-full bg-slate-950 text-white px-3 py-2 rounded-xl border border-slate-800 focus:outline-none focus:border-indigo-500 text-sm">
+        </div>
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow-lg shadow-indigo-500/20">
+          Sign In
+        </button>
+      </form>
+      <div class="border-t border-slate-800 pt-3 text-center">
+        <button onclick="loginAsGuest()" class="text-xs text-slate-400 hover:text-slate-200 underline">
+          Continue as Guest View Only
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-indigo-600 text-white px-4 py-3 rounded-xl shadow-2xl border border-indigo-400/30 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-3">
+    <svg class="w-5 h-5 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <span id="toast-message" class="text-sm font-semibold">Action completed successfully</span>
+  </div>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
